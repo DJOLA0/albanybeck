@@ -1,0 +1,185 @@
+SQL ASSESSMENT
+TASKS 
+
+1. Create a SQL statement to list all managers and their titles. 
+
+SELECT e.*, title
+FROM employees e
+LEFT JOIN titles t ON e.emp_no = t.emp_no
+RIGHT JOIN dept_manager ON e.emp_no = dept_manager.emp_no
+GROUP BY dept_manager.emp_no;
+
+
+
+
+
+2. Create a SQL statement to show the salary of all employees and their department name. 
+
+SELECT s.salary, d.dept_name, CONCAT(first_name, ' ', last_name) AS full_name
+FROM employees e
+LEFT JOIN salaries s ON e.emp_no = s.emp_no
+LEFT JOIN dept_emp de ON e.emp_no = de.emp_no
+LEFT JOIN departments d ON de.dept_no = d.dept_no
+GROUP BY emp_no;
+
+
+
+
+
+3. Create a SQL statement to show the hire date and birth date who belongs to HR department 
+
+SELECT dept_name, hire_date, birth_date
+FROM employees e
+INNER JOIN dept_manager dm ON e.emp_no = dm.emp_no
+INNER JOIN departments d ON dm.dept_no = d.dept_no
+WHERE dept_name = "Human Resources"
+UNION
+SELECT dept_name, hire_date, birth_date 
+FROM employees e
+INNER JOIN dept_emp de ON e.emp_no = de.emp_no
+INNER JOIN departments d ON de.dept_no = d.dept_no
+WHERE dept_name = "Human Resources";
+
+
+
+
+
+
+
+4. Create a SQL statement to show all departments and their department’s managers. 
+
+SELECT d.dept_name, first_name, last_name
+FROM employees e
+INNER JOIN dept_manager dm ON e.emp_no = dm.emp_no
+INNER JOIN departments d ON dm.dept_no = d.dept_no;
+
+
+
+
+
+5. Create a SQL statement to show a list of HR’s employees who were hired after 1986 
+
+SELECT first_name, last_name, hire_date, TIMESTAMPDIFF(YEAR, hire_date, CURDATE()) AS years_employed, dept_name
+FROM employees e
+INNER JOIN dept_emp de ON e.emp_no = de.emp_no
+JOIN departments d ON de.dept_no = d.dept_no
+WHERE hire_date > '1986-01-01' AND dept_name = "Human Resources"
+UNION
+SELECT first_name, last_name, hire_date, TIMESTAMPDIFF(YEAR, hire_date, CURDATE()) AS years_employed, dept_name
+FROM employees e
+INNER JOIN dept_manager dm ON e.emp_no = dm.emp_no
+INNER JOIN departments d ON dm.dept_no = d.dept_no
+WHERE hire_date > '1986-01-01' AND dept_name = "Human Resources";
+
+
+
+
+
+6. Create a SQL statement to increase any employee’s salary up to 2%. Assume the employee has just phoned in with his/her last name. 
+
+CREATE TEMPORARY TABLE temp_salaries (
+  last_name VARCHAR(16),
+  salary INT(11)
+);
+
+INSERT INTO temp_salaries
+SELECT e.last_name, salary
+FROM salaries s
+INNER JOIN employees e ON s.emp_no = e.emp_no;
+
+
+UPDATE temp_salaries
+SET salary = salary * 1.02
+WHERE e.last_name = 'Facello';
+
+DROP TABLE IF EXISTS temp_salaries;
+
+
+
+
+
+7. Create a SQL statement to delete employee’s record who belongs to marketing department and name start with A 
+
+CREATE TEMPORARY TABLE market_table (
+first_name VARCHAR(14),
+last_name (VARCHAR(14),
+dept_name (VARCHAR(40),
+);
+
+INSERT INTO market_table
+e.first_name, e.last_name, d.dept_name
+FROM employees e 
+INNER JOIN dept_manager dm ON dm.emp_no = e.emp_no
+INNER JOIN departments d ON d.dept_no = dm.dept_no
+);
+DELETE FROM market_table
+WHERE dept_name = "Marketing" AND first_name A%;
+
+
+DROP TABLE IF EXISTS market-table;
+
+
+
+
+
+8. Create a database view to list the full names of all departments’ managers, and their salaries. 
+
+CREATE VIEW managers_salaries AS
+WITH cte AS(
+SELECT dm.emp_no,
+CONCAT(e.first_name, ' ', e.last_name) AS manager_name, 
+s.salary
+FROM employees e
+INNER JOIN dept_manager dm ON e.emp_no = dm.emp_no
+LEFT JOIN salaries s ON e.emp_no = s.emp_no)
+SELECT * 
+FROM 
+(SELECT *, DENSE_RANK() OVER(PARTITION BY emp_no ORDER BY salary DESC) AS rnk
+	FROM cte
+) AS sq
+WHERE sq.rnk = 1;
+
+SELECT * FROM managers_salaries;
+
+
+
+
+
+9. Create a database view to list all departments and their department’s managers, who were hired between 1980 and 1990. 
+
+CREATE VIEW managers_table AS(
+SELECT
+d.dept_name, 
+CONCAT(e.first_name, ' ', e.last_name) AS manager_name,
+hire_date
+FROM employees e
+INNER JOIN dept_manager dm ON dm.emp_no = e.emp_no
+INNER JOIN departments d ON d.dept_no = dm.dept_no
+WHERE hire_date BETWEEN '1980-01-01' AND '1990-12-31';
+)
+
+SELECT * FROM managers_table;
+
+
+
+ 
+
+10. Create a SQL statement to increase salaries of all department’s managers up to 10% who are working since 1990
+
+CREATE TEMPORARY TABLE temp_salaries (
+first_name VARCHAR(14),
+last_name (VARCHAR(14),
+hire_date DATE,
+salary INT(11),
+);
+
+INSERT INTO temp_salaries
+e.first_name, e.last_name, s.salary
+FROM salaries s
+INNER JOIN dept_manager dm ON dm.emp_no = e.emp_no
+INNER JOIN departments d ON d.dept_no = dm.dept_no
+INNER JOIN employees e ON s.emp_no = e.emp_no
+
+UPDATE temp_salaries
+SET salary = salary * 1.10
+WHERE hire_date > '1990-01-01';

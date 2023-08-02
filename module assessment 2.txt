@@ -1,0 +1,154 @@
+
+
+mysql -u root -p
+
+
+
+DROP DATABASE IF EXISTS myHome;
+
+CREATE DATABASE myHome;
+
+USE myHome;
+
+SELECT ‘CREATING DATABASE STRUCTURE’ as ‘INFO’;
+
+DROP TABLE IF EXISTS sales_data,
+
+area_sales_rep, 
+
+property,
+
+customer,
+
+supervisor;
+
+CREATE TABLE area_sales_rep (
+name VARCHAR(40) NOT NULL,
+phone_number VARCHAR(40) NOT NULL,
+sales_area VARCHAR(40) NOT NULL,
+area_sales_rep_id CHAR(4) NOT NULL,
+PRIMARY KEY (area_sales_rep_id),
+UNIQUE KEY (name)
+);
+
+INSERT INTO area_sales_rep VALUES
+('John','07771234567','London','rep1'),
+('Jane','07778901234','Manchester','rep2'),
+('Peter','07775678910','Birmingham','rep3'),
+('Susan','07779876543','Liverpool','rep4'),
+('Michael',07847021766,'Brighton','rep5');
+
+
+CREATE TABLE sales_data (
+date_of_sale DATE NOT NULL,
+property_sold VARCHAR(40) NOT NULL,
+price_of_sale VARCHAR(40) NOT NULL,
+area_sales_rep_id CHAR(4) NOT NULL,
+rep_responsible CHAR(9) NOT NULL,
+property_id CHAR(4) NOT NULL,
+UNIQUE KEY (property_id),
+PRIMARY KEY (area_sales_rep_id)
+);
+
+INSERT INTO sales_data VALUES
+('2005-11-21','commerial property','2800726.11','rep2','Jane','p005'),
+('2013-12-01','land','1250332.72','rep5','Michael','p004'),
+('2015-03-14','apartment','855300.23','rep3','Peter','p002'),
+('2019-08-31','house','240000.11','rep1','John','p001'),
+('2023-01-22','bungalow','475000','rep4','Susan','p003');
+
+
+
+
+
+CREATE TABLE property (
+type VARCHAR(50) NOT NULL,
+location VARCHAR(40) NOT NULL,
+square_ft INT(12) NOT NULL,
+price VARCHAR(40) NOT NULL,
+regulation VARCHAR(40) NOT NULL,
+property_id CHAR(4) NOT NULL,
+area_sales_rep_id CHAR(4) NOT NULL,
+FOREIGN KEY (area_sales_rep_id) REFERENCES sales_data (area_sales_rep_id) ON DELETE CASCADE,
+UNIQUE KEY (type),
+PRIMARY KEY (area_sales_rep_id, property_id)
+);
+
+
+INSERT INTO property VALUES
+('house',‘Birmingham’,‘1679’,‘260000’,‘plumbing’,'p001','rep4'),
+('apartment',‘London’,‘667’,‘778000’,‘fire’,'p002','rep2'),
+('bungalow',‘Liverpool’,‘910’,‘475000’,'evacuation','p003','rep3'),
+('land',‘Manchester’,‘2026’,‘1000000’,‘sanitation’,'p004','rep1'),
+('commercial property',‘Brighton’,‘10000’,‘2500000’,‘electrical’,'p005','rep5');
+
+
+
+CREATE TABLE customer (
+customer_id CHAR(4) NOT NULL,
+name VARCHAR(40) NOT NULL,
+phone_number VARCHAR(40) NOT NULL,
+area_sales_rep_id CHAR(4) NOT NULL,
+FOREIGN KEY (area_sales_rep_id) REFERENCES property (area_sales_rep_id) ON DELETE CASCADE,
+PRIMARY KEY (customer_id),
+UNIQUE KEY (name)
+);
+
+INSERT INTO customer VALUES
+('Cus1','Jack','07457298263','rep3'),
+('Cus2','Kim','07912345678','rep5'),
+('Cus3','Daniel','07594285310','rep4'),
+('Cus4','Lucy','07643847623','rep1'),
+('Cus5','Alex','07661902101','rep2');
+
+
+
+
+
+CREATE TABLE supervisor (
+name VARCHAR(40) NOT NULL,
+phone_number VARCHAR(40) NOT NULL,
+supervisor_id CHAR(4) NOT NULL,
+managing CHAR(4) NOT NULL,
+area_sales_rep_id CHAR(4) NOT NULL,
+FOREIGN KEY (area_sales_rep_id) REFERENCES area_sales_rep (area_sales_rep_id),
+UNIQUE KEY (name),
+PRIMARY KEY (supervisor_id)
+);
+
+
+
+INSERT INTO supervisor VALUES
+('Nick','07246819123',‘Sup1’,'John','rep1'),
+('Sammy','07539437661',‘Sup2','Jane','rep2'),
+('Bobby','07539773254',‘Sup3’,'Peter','rep3');
+
+
+
+------
+
+1. Display names of representatives, details of the properties they represent, and 
+names of their supervisors
+
+
+SELECT
+  a.name AS area_sales_rep_name,
+  p.type AS property_type,
+  p.location AS property_location,
+  p.price AS property_price,
+  s.name AS supervisor_name
+FROM area_sales_rep a
+JOIN property p ON a.area_sales_rep_id = p.area_sales_rep_id
+JOIN supervisor s ON a.area_sales_rep_id = s.area_sales_rep_id;
+
+2. Display details of customers together with details of their areas and names of the 
+managers of their areas.
+
+SELECT
+  c.name AS customer_name,
+  a.area_sales_rep_id AS area_sales_rep_id,
+  a.sales_area AS sales_area,
+  s.name AS supervisor_name
+FROM customer c
+JOIN area_sales_rep a ON c.area_sales_rep_id = a.area_sales_rep_id
+JOIN supervisor s ON a.area_sales_rep_id = s.area_sales_rep_id;
